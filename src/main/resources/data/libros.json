@@ -1,0 +1,31 @@
+[
+    {
+        "id": "1",
+        "titulo": "Hamlet",
+        "isbn": " 1475168241",
+        "genero": "Ficcion y Poesia",
+        "cantidad": "3",
+        "portada": "",
+        "anoPublicacion": "2012",
+        "editorial": "CreateSpace Independent Publishing Platform",
+        "idioma": " Español",
+        "rating": "0",
+        "autorId": "2",
+        "estado": "Disponible"
+    },
+    {
+        "id": "2",
+        "titulo": "Don Quijote de La Mancha",
+        "isbn": "  8471664577",
+        "genero": "",
+        "cantidad": "10",
+        "portada": "",
+        "anoPublicacion": "2001",
+        "editorial": "Edaf Antillas",
+        "idioma": " Español",
+        "rating": "0",
+        "autorId": "1",
+        "estado": "Disponible"
+    }
+]
+

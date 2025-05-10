@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "titulo": "Hamlet",
+    "isbn": "1475168241",
+    "genero": "Ficcion y Poesia",
+    "cantidad": 3,
+    "portada": "/home/wgarciac/NetBeansProjects/Biblioteca/src/main/resources/imagenes/libros/600_hamlet_1.jpg",
+    "anoPublicacion": 2012,
+    "editorial": "CreateSpace Independent Publishing Platform",
+    "idioma": "Español",
+    "rating": 3.5,
+    "autorId": 2,
+    "estado": "Disponible"
+  },
+  {
+    "id": 2,
+    "titulo": "Don Quijote de La Mancha",
+    "isbn": "8471664577",
+    "genero": "Aventura",
+    "cantidad": 10,
+    "portada": "/home/wgarciac/NetBeansProjects/Biblioteca/src/main/resources/imagenes/libros/don_quijote.jpg",
+    "anoPublicacion": 2001,
+    "editorial": "Edaf Antillas",
+    "idioma": "Español",
+    "rating": 4.0,
+    "autorId": 1,
+    "estado": "Disponible"
+  },
+  {
+    "id": 3,
+    "titulo": "La Banana es Amarilla",
+    "isbn": "12313548",
+    "genero": "Ficcion",
+    "cantidad": 0,
+    "portada": "/home/wgarciac/NetBeansProjects/Biblioteca/src/main/resources/imagenes/libros/images.png",
+    "anoPublicacion": 1973,
+    "editorial": "Santa Piedra",
+    "idioma": "Español",
+    "rating": 0.0,
+    "autorId": 3,
+    "estado": "Retirado"
+  }
+]

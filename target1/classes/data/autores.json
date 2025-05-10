@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "nombre": "Miguel de Cervantes",
+        "biografia": "Miguel de Cervantes Saavedra ​ fue un novelista, poeta, dramaturgo y soldado español. Es ampliamente considerado una de las máximas figuras de la literatura española.",
+        "paisOrigen": "España",
+        "fotografia": ""
+    },
+    {
+        "id": 2,
+        "nombre": "William Shakespeare",
+        "biografia": "William Shakespeare ​ fue un dramaturgo, poeta y actor inglés. Conocido en ocasiones como el Bardo de Avon, se le considera el escritor más importante en lengua inglesa y como uno de los más célebres de la literatura universal.​Según la Enciclopedia Británica",
+        "paisOrigen": "Reino Unido",
+        "fotografia": ""
+    }
+]

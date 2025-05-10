@@ -1,0 +1,14 @@
+[
+    {    
+        "id": 1,
+        "nombreRol": "Administrador"
+    },
+    {    
+        "id": 2,
+        "nombreRol": "Bibliotecario"
+    },
+    {    
+        "id": 3,
+        "nombreRol": "Miembro"
+    }
+]

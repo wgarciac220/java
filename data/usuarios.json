@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "William Garcia",
+    "email": "wgarcia1@miumg.edu.gt",
+    "rolId": 1,
+    "fotografia": "/home/wgarciac/NetBeansProjects/Biblioteca/src/main/resources/imagenes/usuarios/generic_user.jpg",
+    "fechaRegistro": "2025-05-01",
+    "salt": "/oPp05/Pa7Lj9mp2xobzFw\u003d\u003d",
+    "contrasena": "+Lyo177VFhebwuIOzEnTxd36p3JPzoIntckQDjjngyQ\u003d"
+  },
+  {
+    "id": 2,
+    "name": "Mariana Mendoza",
+    "email": "mmendoza@gmail.com",
+    "rolId": 2,
+    "fotografia": "/home/wgarciac/NetBeansProjects/Biblioteca/src/main/resources/imagenes/usuarios/generic_user.jpg",
+    "fechaRegistro": "2025-05-01",
+    "salt": "aYjORV31RWCNgWtQ46S4ZA\u003d\u003d",
+    "contrasena": "qpa6JndkiiKQp8grrhDzwqH2fdn4Ch8VRHdYE9AH8tM\u003d"
+  },
+  {
+    "id": 3,
+    "name": "Daphne Garcia",
+    "email": "dgarcia@gmail.com",
+    "rolId": 3,
+    "fotografia": "/home/wgarciac/NetBeansProjects/Biblioteca/src/main/resources/imagenes/usuarios/generic_user.jpg",
+    "fechaRegistro": "2025-05-10",
+    "salt": "CpTmb9hKOQrcYefNYrDQ1A\u003d\u003d",
+    "contrasena": "FzdlQskxZEH/mGAeSg8dY45yOwbcH7kNozzpxDKh+A4\u003d"
+  }
+]
