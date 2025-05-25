@@ -4,9 +4,9 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.LibroData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.PrestamoData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.ResenaData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.LibroData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.PrestamoData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.ResenaData;
 import gt.edu.miumg.programacion1.biblioteca.modelos.HistorialPrestamo;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Libro;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Resena;
@@ -36,6 +36,9 @@ public class DevolverController {
     private static final String DATA_LIBROS = "data/libros.json";
     private static final String DATA_RESENAS = "data/resenas.json";
     private static final String DATA_PRESTAMOS = "data/prestamos.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     private LibroData data;
     private List<Libro> libros;

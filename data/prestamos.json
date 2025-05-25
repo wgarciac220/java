@@ -12,9 +12,9 @@
     "id": 2,
     "usuarioId": 1,
     "libroId": 2,
-    "fechaPrestamo": "2025-05-08T22:01:20.388616517",
+    "fechaPrestamo": "2025-04-08T22:01:20.388616517",
     "estado": "Prestado",
-    "fechaDevolucion": "2025-05-23T00:00:00",
+    "fechaDevolucion": "2025-04-23T00:00:00",
     "multa": 0.0
   }
 ]

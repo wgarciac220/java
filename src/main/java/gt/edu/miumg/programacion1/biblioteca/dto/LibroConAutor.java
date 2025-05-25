@@ -2,15 +2,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package gt.edu.miumg.programacion1.biblioteca.modelos;
+package gt.edu.miumg.programacion1.biblioteca.dto;
 
 import java.time.Year;
 
 /**
  *
- * @author wgarciac
+ * @author willc
  */
-public class Libro {
+public class LibroConAutor {
 
     /**
      * @return the id
@@ -180,7 +180,21 @@ public class Libro {
         this.estado = estado;
     }
 
-    public Libro(Short id, String titulo, String isbn, String genero, Short cantidad, String portada, Year anoPublicacion, String editorial, String idioma, Float rating, Short autorId, String estado) {
+    /**
+     * @return the autorNombre
+     */
+    public String getAutorNombre() {
+        return autorNombre;
+    }
+
+    /**
+     * @param autorNombre the autorNombre to set
+     */
+    public void setAutorNombre(String autorNombre) {
+        this.autorNombre = autorNombre;
+    }
+
+    public LibroConAutor(Short id, String titulo, String isbn, String genero, Short cantidad, String portada, Year anoPublicacion, String editorial, String idioma, Float rating, Short autorId, String estado, String autorNombre) {
         this.id = id;
         this.titulo = titulo;
         this.isbn = isbn;
@@ -193,24 +207,7 @@ public class Libro {
         this.rating = rating;
         this.autorId = autorId;
         this.estado = estado;
-    }
-
-    @Override
-    public String toString() {
-        return "Libro{"
-                + "id=" + id
-                + ", titulo='" + titulo + '\''
-                + ", isbn='" + isbn + '\''
-                + ", genero='" + genero + '\''
-                + ", cantidad=" + cantidad
-                + ", portada='" + portada + '\''
-                + ", anoPublicacion=" + anoPublicacion
-                + ", editorial='" + editorial + '\''
-                + ", idioma='" + idioma + '\''
-                + ", rating=" + rating
-                + ", autorId=" + autorId
-                + ", estado='" + estado + '\''
-                + '}';
+        this.autorNombre = autorNombre;
     }
 
     private Short id;
@@ -225,4 +222,5 @@ public class Libro {
     private Float rating;
     private Short autorId;
     private String estado;
+    private String autorNombre;
 }

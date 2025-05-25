@@ -23,6 +23,9 @@ public class MenuController {
 
     private static final String DATA_USUARIOS = "data/usuarios.json";
     private static final String DATA_ROLES = "data/roles.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     private List<Usuario> usuarios;
     private MenuForm menuForm;

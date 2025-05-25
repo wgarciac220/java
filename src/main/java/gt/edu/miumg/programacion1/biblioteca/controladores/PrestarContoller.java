@@ -4,10 +4,10 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.AutorData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.LibroData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.PrestamoData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.UsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.AutorData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.LibroData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.PrestamoData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.UsuarioData;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Autor;
 import gt.edu.miumg.programacion1.biblioteca.modelos.HistorialPrestamo;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Libro;
@@ -35,6 +35,9 @@ public class PrestarContoller {
     private static final String DATA_AUTORES = "data/autores.json";
     private static final String DATA_USUARIOS = "data/usuarios.json";
     private static final String DATA_PRESTAMOS = "data/prestamos.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     private LibroData data;
     private List<Libro> libros;

@@ -4,15 +4,12 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.AutorData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.IAutorData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.AutorDataMySQL;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Autor;
 import gt.edu.miumg.programacion1.biblioteca.vistas.AutorForm;
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.RowFilter;
@@ -26,16 +23,16 @@ public class AutorController {
 
     private AutorForm autorForm;
 
-    private AutorData data;
+    private IAutorData data;
     private List<Autor> autores;
-    private static final String DATA_AUTORES = "data/autores.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     public AutorController() {
-
         try {
-            this.data = new AutorData(DATA_AUTORES);
-            this.autores = data.cargarAutores();
-
+            this.data = new AutorDataMySQL(url, user, password);
+            this.autores = data.getAllAuthors();
             this.autorForm = new AutorForm();
             this.autorForm.fotografiaField.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
@@ -48,13 +45,10 @@ public class AutorController {
             this.autorForm.eliminarBtn.addActionListener(e -> this.DeleteData());
             this.autorForm.aplicarFiltroBtn.addActionListener(e -> this.ApplyFilter());
             this.autorForm.tablaAutores.getSelectionModel().addListSelectionListener(e -> this.LlenarDetallesAutor(e));
-
             this.LlenarTablaAutores();
-
-        } catch (IOException ex) {
-            Logger.getLogger(AutorController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.autorForm, "Ocurrió un error al cargar los libros:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     public AutorForm Mostrar() {
@@ -71,50 +65,58 @@ public class AutorController {
 
     private void SaveData() {
 
-        String nombre = this.autorForm.nombreField.getText().trim();
-        String pais = this.autorForm.paisField.getText().trim();
-        String fotografia = this.autorForm.fotografiaField.getText().trim();
-        String biografia = this.autorForm.biografiaField.getText().trim();
+        try {
+            String nombre = this.autorForm.nombreField.getText().trim();
+            String pais = this.autorForm.paisField.getText().trim();
+            String fotografia = this.autorForm.fotografiaField.getText().trim();
+            String biografia = this.autorForm.biografiaField.getText().trim();
 
-        if (nombre.isEmpty() || pais.isEmpty() || biografia.isEmpty()) {
-            JOptionPane.showMessageDialog(this.autorForm, "Por favor llena los campos obligatorios:\nNombre, Pais y Biografia.",
-                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
-            return;
+            if (nombre.isEmpty() || pais.isEmpty() || biografia.isEmpty()) {
+                JOptionPane.showMessageDialog(this.autorForm, "Por favor llena los campos obligatorios:\nNombre, Pais y Biografia.",
+                        "Datos incompletos", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            boolean isNewRecord = this.autorForm.idField.getText().isBlank();
+            Short idAutor = isNewRecord ? null : Short.valueOf(this.autorForm.idField.getText());
+            Autor autor = new Autor(idAutor, nombre, biografia, pais, fotografia);
+
+            if (isNewRecord) {
+                Short nuevoId = this.data.registerAuthor(autor);
+                if (nuevoId != null) {
+                    JOptionPane.showMessageDialog(this.autorForm, "Autor registrado exitosamente con ID: " + nuevoId, "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this.autorForm, "No se pudo registrar el autor.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                this.data.updateAuthor(autor);
+                JOptionPane.showMessageDialog(this.autorForm, "Autor actualizado exitosamente.", "Actualización exitosa", JOptionPane.INFORMATION_MESSAGE);
+
+            }
+
+            this.autores = data.getAllAuthors();
+            this.LlenarTablaAutores();
+            this.ClearFieldsData();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.autorForm, "Error en la base de datos: " + ex.getMessage(), "Error de guardado", JOptionPane.ERROR_MESSAGE);
         }
-
-        boolean isNewRecord = this.autorForm.idField.getText().isBlank();
-
-        Short idAutor;
-        if (isNewRecord) {
-            idAutor = (short) (this.autores.stream().mapToInt(autor -> autor.getId()).max().orElse(0) + 1);
-        } else {
-            idAutor = Short.valueOf(this.autorForm.idField.getText().trim());
-        }
-
-        Autor autor = new Autor(idAutor, nombre, biografia, pais, fotografia);
-
-        if (isNewRecord) {
-            this.autores.add(autor);
-        } else {
-            this.autores = this.autores.stream()
-                    .map(a -> a.getId().equals(autor.getId()) ? autor : a)
-                    .collect(Collectors.toList());
-        }
-
-        this.ClearFieldsData();
-        data.guardarAutores(this.autores);
-        this.LlenarTablaAutores();
     }
 
     private void DeleteData() {
-        Short idAutor = Short.valueOf(this.autorForm.idField.getText());
-        this.autores = this.autores.stream()
-                .filter(autor -> !Objects.equals(autor.getId(), idAutor))
-                .collect(Collectors.toList());
 
-        this.ClearFieldsData();
-        data.guardarAutores(this.autores);
-        this.LlenarTablaAutores();
+        try {
+            Short idAutor = Short.valueOf(this.autorForm.idField.getText());
+            data.removeAuthor(idAutor);
+            this.autores = data.getAllAuthors();
+            this.LlenarTablaAutores();
+            this.ClearFieldsData();
+        } catch (SQLException ex) {
+            if (ex.getMessage().contains("foreign key constraint fails")) {
+                JOptionPane.showMessageDialog(autorForm, "No se puede eliminar el autor porque tiene libros asociados.\nElimine o reasigne esos libros primero.", "Error de integridad referencial", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this.autorForm, "Ocurrió un error al eliminar el autor:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void ApplyFilter() {

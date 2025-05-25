@@ -4,20 +4,20 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.AutorData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.LibroData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.ResenaData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.IAutorData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.ILibroData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.ResenaData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.AutorDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.LibroDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.dto.LibroConAutor;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Autor;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Libro;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Resena;
 import gt.edu.miumg.programacion1.biblioteca.vistas.LibroForm;
-import java.io.IOException;
+import java.sql.SQLException;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -30,16 +30,17 @@ import javax.swing.event.ListSelectionEvent;
  */
 public class LibroController {
 
-    private static final String DATA_LIBROS = "data/libros.json";
-    private static final String DATA_AUTORES = "data/autores.json";
     private static final String DATA_RESENAS = "data/resenas.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     private LibroForm libroForm;
 
-    private LibroData data;
-    private List<Libro> libros;
+    private ILibroData dataLibro;
+    private List<LibroConAutor> libros;
 
-    private AutorData dataAutor;
+    private IAutorData dataAutor;
     private List<Autor> autores;
 
     private ResenaData resenaData;
@@ -49,19 +50,17 @@ public class LibroController {
 
     public LibroController() {
         try {
-//            libroForm = new LibroForm();
+            //            this.resenaData = new ResenaData(DATA_RESENAS);
+//            this.resenas = resenaData.cargaResenas();
 
-            this.data = new LibroData(DATA_LIBROS);
-            this.libros = data.cargarLibros();
-            this.dataAutor = new AutorData(DATA_AUTORES);
-            this.autores = dataAutor.cargarAutores();
-            this.resenaData = new ResenaData(DATA_RESENAS);
-            this.resenas = resenaData.cargaResenas();
+            this.dataLibro = new LibroDataMySQL(url, user, password);
+            this.libros = dataLibro.getAllBooks();
+            this.dataAutor = new AutorDataMySQL(url, user, password);
+            this.autores = dataAutor.getAllAuthors();
 
             this.estados = new ArrayList<>();
             this.estados.add("Disponible");
             this.estados.add("Retirado");
-
             this.libroForm = new LibroForm();
             this.libroForm.portadaField.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
@@ -74,14 +73,12 @@ public class LibroController {
             this.libroForm.eliminarBtn.addActionListener(e -> this.DeleteData());
             this.libroForm.aplicarFiltroBtn.addActionListener(e -> this.ApplyFilter());
             this.libroForm.tablaLibros.getSelectionModel().addListSelectionListener(e -> this.LlenarDetallesLibro(e));
-
             this.LlenarTablaLibros();
             this.LlenarComboboxAutor();
             this.LlenarComboboxEstado();
-        } catch (IOException ex) {
-            Logger.getLogger(LibroController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.libroForm, "Ocurrió un error al cargar los libros:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     public LibroForm Mostrar() {
@@ -91,7 +88,6 @@ public class LibroController {
     private void ClearFieldsData() {
         this.libroForm.idField.setText("");
         this.libroForm.tituloField.setText("");
-        this.libroForm.autorCombobox.setSelectedIndex(0);
         this.libroForm.editorialField.setText("");
         this.libroForm.portadaField.setText("");
         this.libroForm.isbnField.setText("");
@@ -103,74 +99,69 @@ public class LibroController {
     }
 
     private void SaveData() {
-        String titulo = this.libroForm.tituloField.getText().trim();
-        String autor = this.libroForm.autorCombobox.getSelectedItem().toString();
-        String editorial = this.libroForm.editorialField.getText().trim();
-        String portada = this.libroForm.portadaField.getText().trim();
-        String isbn = this.libroForm.isbnField.getText().trim();
-        String idioma = this.libroForm.idiomaField.getText().trim();
-        String genero = this.libroForm.generoField.getText().trim();
-        String year = this.libroForm.yearField.getText().trim();
-        String estado = this.libroForm.estadoCombobox.getSelectedItem().toString();
-        String cantidad = this.libroForm.cantidadField.getText().trim();
+        try {
+            Autor autorSeleccionado = (Autor) this.libroForm.autorCombobox.getSelectedItem();
 
-        String autorNombre = this.libroForm.autorCombobox.getSelectedItem().toString();
+            String titulo = this.libroForm.tituloField.getText().trim();
+            Short idAutor = autorSeleccionado.getId();
+            String editorial = this.libroForm.editorialField.getText().trim();
+            String portada = this.libroForm.portadaField.getText().trim();
+            String isbn = this.libroForm.isbnField.getText().trim();
+            String idioma = this.libroForm.idiomaField.getText().trim();
+            String genero = this.libroForm.generoField.getText().trim();
+            String year = this.libroForm.yearField.getText().trim();
+            String estado = this.libroForm.estadoCombobox.getSelectedItem().toString();
+            String cantidad = this.libroForm.cantidadField.getText().trim();
 
-        if (titulo.isEmpty() || autor.isEmpty() || editorial.isEmpty() || isbn.isEmpty() || idioma.isEmpty() || genero.isEmpty() || year.isEmpty() || estado.isEmpty() || cantidad.isEmpty()) {
-            JOptionPane.showMessageDialog(this.libroForm, "Por favor llena los campos obligatorios:\nTitulo, Autor, Editorial, ISBN, Idioma, Genero, Publicacion, Estado y Cantidad.",
-                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
-            return;
+            if (titulo.isEmpty() || editorial.isEmpty() || isbn.isEmpty() || idioma.isEmpty() || genero.isEmpty() || year.isEmpty() || estado.isEmpty() || cantidad.isEmpty()) {
+                JOptionPane.showMessageDialog(this.libroForm, "Por favor llena los campos obligatorios:\nTitulo, Autor, Editorial, ISBN, Idioma, Genero, Publicacion, Estado y Cantidad.",
+                        "Datos incompletos", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            boolean isNewRecord = this.libroForm.idField.getText().isBlank();
+            Short idLibro = isNewRecord ? null : Short.valueOf(this.libroForm.idField.getText());
+            Float rating = 0.0f;
+            Short cantidadLibros = Short.valueOf(cantidad);
+            Year anoPublicacion = Year.of(Integer.parseInt(year));
+
+            Libro libro = new Libro(idLibro, titulo, isbn, genero, cantidadLibros, portada, anoPublicacion, editorial, idioma, rating, idAutor, estado);
+
+            if (isNewRecord) {
+                Short nuevoId = this.dataLibro.registerBook(libro);
+                if (nuevoId != null) {
+                    JOptionPane.showMessageDialog(this.libroForm, "Libro registrado exitosamente con ID: " + nuevoId, "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this.libroForm, "No se pudo registrar el libro.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                this.dataLibro.updateBook(libro);
+                JOptionPane.showMessageDialog(this.libroForm, "Libro actualizado exitosamente.", "Actualización exitosa", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+            this.libros = this.dataLibro.getAllBooks();
+            this.LlenarTablaLibros();
+            this.ClearFieldsData();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.libroForm, "Error en la base de datos: " + ex.getMessage(), "Error de guardado", JOptionPane.ERROR_MESSAGE);
         }
-
-        boolean isNewRecord = this.libroForm.idField.getText().isBlank();
-
-        Short idLibro;
-        if (isNewRecord) {
-            idLibro = (short) (this.libros.stream().mapToInt(libro -> libro.getId()).max().orElse(0) + 1);
-        } else {
-            idLibro = Short.valueOf(this.libroForm.idField.getText());
-        }
-
-        Short idAutor = autores.stream()
-                .filter(a -> a.getNombre().equals(autorNombre))
-                .map(Autor::getId)
-                .findFirst()
-                .orElse((short) 0);
-
-        Float rating = 0.0f;
-        Short cantidadLibros = Short.valueOf(cantidad);
-        Year anoPublicacion = Year.of(Integer.parseInt(year));
-
-        Libro libro = new Libro(idLibro, titulo, isbn, genero, cantidadLibros, portada, anoPublicacion, editorial, idioma, rating, idAutor, estado);
-
-        if (isNewRecord) {
-            this.libros.add(libro);
-        } else {
-            Libro existingLibro = this.libros.stream()
-                    .filter(l -> l.getId().equals(idLibro))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            libro.setRating(existingLibro.getRating());
-
-            this.libros = this.libros.stream()
-                    .map(l -> l.getId().equals(libro.getId()) ? libro : l)
-                    .collect(Collectors.toList());
-        }
-
-        this.ClearFieldsData();
-        data.guardarLibros(this.libros);
-        this.LlenarTablaLibros();
     }
 
     private void DeleteData() {
-        Short idLibro = Short.valueOf(this.libroForm.idField.getText());
-        this.libros = this.libros.stream()
-                .filter(libro -> !Objects.equals(libro.getId(), idLibro))
-                .collect(Collectors.toList());
+        try {
+            Short idLibro = Short.valueOf(this.libroForm.idField.getText());
+            this.dataLibro.removeBook(idLibro);
 
-        this.ClearFieldsData();
-        data.guardarLibros(this.libros);
-        this.LlenarTablaLibros();
+            this.libros = this.dataLibro.getAllBooks();
+            this.LlenarTablaLibros();
+            this.ClearFieldsData();
+        } catch (SQLException ex) {
+            if (ex.getMessage().contains("foreign key constraint fails")) {
+                JOptionPane.showMessageDialog(libroForm, "No se puede eliminar el autor porque tiene libros asociados.\nElimine o reasigne esos libros primero.", "Error de integridad referencial", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this.libroForm, "Ocurrió un error al eliminar el libro:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void ApplyFilter() {
@@ -187,14 +178,11 @@ public class LibroController {
         this.libroForm.tablaLibros.clearSelection();
         this.libroForm.modeloTabla.setRowCount(0); // Limpiar tabla
 
-        for (Libro libro : this.libros) {
-            float ratingPromedio = calcularPromedioRating(libro.getId());
-            libro.setRating(ratingPromedio);
-
+        for (LibroConAutor libro : this.libros) {
             Object[] fila = {
                 libro.getId(),
                 libro.getTitulo(),
-                this.getNombreAutorById(libro.getAutorId()),
+                libro.getAutorNombre(),
                 libro.getEditorial(),
                 libro.getPortada(),
                 libro.getIsbn(),
@@ -203,7 +191,8 @@ public class LibroController {
                 libro.getAnoPublicacion(),
                 libro.getEstado(),
                 libro.getCantidad(),
-                libro.getRating()
+                libro.getRating(),
+                libro.getAutorId()
             };
             this.libroForm.modeloTabla.addRow(fila);
         }
@@ -220,9 +209,12 @@ public class LibroController {
         }
 
         int modelRow = this.libroForm.tablaLibros.convertRowIndexToModel(selectedRow);   // indice a modelo
+        int indice = obtenerIndiceAutorPorId(Short.valueOf(this.libroForm.modeloTabla.getValueAt(modelRow, 12).toString()));
+        String estado = this.libroForm.modeloTabla.getValueAt(modelRow, 9).toString();
 
         this.libroForm.idField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 0).toString());
         this.libroForm.tituloField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 1).toString());
+        this.libroForm.autorCombobox.setSelectedIndex(indice);
         this.libroForm.editorialField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 3).toString());
         this.libroForm.portadaField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 4).toString());
         this.libroForm.isbnField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 5).toString());
@@ -230,16 +222,14 @@ public class LibroController {
         this.libroForm.generoField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 7).toString());
         this.libroForm.yearField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 8).toString());
         this.libroForm.cantidadField.setText(this.libroForm.modeloTabla.getValueAt(modelRow, 10).toString());
-
-        String nombreAutor = this.libroForm.modeloTabla.getValueAt(modelRow, 2).toString();
-        this.libroForm.autorCombobox.setSelectedItem(nombreAutor);
-        String estado = this.libroForm.modeloTabla.getValueAt(modelRow, 9).toString();
         this.libroForm.estadoCombobox.setSelectedItem(estado);
     }
 
     private void LlenarComboboxAutor() {
+        this.libroForm.autorCombobox.removeAllItems();
+
         for (Autor autor : this.autores) {
-            this.libroForm.autorCombobox.addItem(autor.getNombre());
+            this.libroForm.autorCombobox.addItem(autor);
         }
     }
 
@@ -273,13 +263,14 @@ public class LibroController {
         }
     }
 
-    private String getNombreAutorById(Short id) {
-        for (Autor autor : this.autores) {
-            if (autor.getId().equals(id)) {
-                return autor.getNombre();
+    private int obtenerIndiceAutorPorId(Short autorId) {
+        for (int i = 0; i < this.libroForm.autorCombobox.getItemCount(); i++) {
+            Autor autor = (Autor) this.libroForm.autorCombobox.getItemAt(i);
+            if (autor.getId().equals(autorId)) {
+                return i;
             }
         }
-        return null; // Si no se encuentra
+        return -1; // No encontrado
     }
 
     private float calcularPromedioRating(Short libroId) {

@@ -4,6 +4,7 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.vistas;
 
+import gt.edu.miumg.programacion1.biblioteca.modelos.Autor;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Rol;
 import gt.edu.miumg.programacion1.biblioteca.util.ImageRenderer;
 import gt.edu.miumg.programacion1.biblioteca.util.StarRatingRenderer;
@@ -47,7 +48,7 @@ public class LibroForm extends JPanel {
     public JTextField cantidadField;
     public JComboBox<String> estadoCombobox;
     public JTextField ratingField;
-    public JComboBox<String> autorCombobox;
+    public JComboBox<Autor> autorCombobox;
     public JButton nuevoBtn;
     public JButton guardarBtn;
     public JButton eliminarBtn;
@@ -192,7 +193,7 @@ public class LibroForm extends JPanel {
         botonesPanel.add(eliminarBtn, btnGbc);
 
         // Tabla
-        String[] columnas = {"ID", "Titulo", "Autor", "Editorial", "Portada", "ISBN", "Idioma", "Genero", "Publicacion", "Estado", "Cantidad", "Rating"};
+        String[] columnas = {"ID", "Titulo", "Autor", "Editorial", "Portada", "ISBN", "Idioma", "Genero", "Publicacion", "Estado", "Cantidad", "Rating", "AutorID"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -219,6 +220,9 @@ public class LibroForm extends JPanel {
         tablaLibros.getColumnModel().getColumn(10).setPreferredWidth(80);  // Cantidad
         tablaLibros.getColumnModel().getColumn(11).setPreferredWidth(100);  // Rating
         tablaLibros.getColumnModel().getColumn(11).setCellRenderer(new StarRatingRenderer());
+        tablaLibros.getColumnModel().getColumn(12).setMinWidth(0);  // columna AutorID oculta
+        tablaLibros.getColumnModel().getColumn(12).setMaxWidth(0);
+        tablaLibros.getColumnModel().getColumn(12).setWidth(0);
 
         JScrollPane tablaScroll = new JScrollPane(tablaLibros);
         tablaScroll.setPreferredSize(new Dimension(610, 200));

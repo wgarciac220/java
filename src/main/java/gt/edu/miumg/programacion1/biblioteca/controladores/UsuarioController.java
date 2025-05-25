@@ -4,8 +4,8 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.RolData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.UsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.RolData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.UsuarioData;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Rol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import gt.edu.miumg.programacion1.biblioteca.util.Password;
@@ -30,6 +30,9 @@ public class UsuarioController {
 
     private static final String DATA_USUARIOS = "data/usuarios.json";
     private static final String DATA_ROLES = "data/roles.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     private List<Usuario> usuarios;
     private List<Rol> roles;

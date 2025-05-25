@@ -4,8 +4,8 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.RecordarUsuarioData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.UsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.RecordarUsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.json.UsuarioData;
 import gt.edu.miumg.programacion1.biblioteca.modelos.RecordarUsuario;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import gt.edu.miumg.programacion1.biblioteca.util.Password;
@@ -24,6 +24,9 @@ public class LoginController {
 
     private static final String DATA_USUARIOS = "data/usuarios.json";
     private static final String DATA_RECORDAR_USUARIO = "data/recordar_usuario.json";
+    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String user = "root";
+    private static final String password = "dimrnyW-9";
 
     private LoginForm loginForm;
     private UsuarioData data;
