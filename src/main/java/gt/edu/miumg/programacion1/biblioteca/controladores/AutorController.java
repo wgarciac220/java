@@ -25,13 +25,13 @@ public class AutorController {
 
     private IAutorData data;
     private List<Autor> autores;
-    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
-    private static final String user = "root";
-    private static final String password = "dimrnyW-9";
+    private static final String URL = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String USER = "root";
+    private static final String PASSWORD = "dimrnyW-9";
 
     public AutorController() {
         try {
-            this.data = new AutorDataMySQL(url, user, password);
+            this.data = new AutorDataMySQL(URL, USER, PASSWORD);
             this.autores = data.getAllAuthors();
             this.autorForm = new AutorForm();
             this.autorForm.fotografiaField.addMouseListener(new java.awt.event.MouseAdapter() {

@@ -92,6 +92,7 @@ public class Autor {
     public String toString() {
         return this.nombre;
     }
+
     private Short id;
     private String nombre;
     private String biografia;

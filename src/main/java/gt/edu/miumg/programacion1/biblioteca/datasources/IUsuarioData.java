@@ -4,7 +4,9 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.datasources;
 
+import gt.edu.miumg.programacion1.biblioteca.dto.UsuarioConRol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -13,12 +15,12 @@ import java.util.List;
  */
 public interface IUsuarioData {
 
-    List<Usuario> getAllUsers();
+    List<UsuarioConRol> getAllUsers() throws SQLException;
 
-    void registerUser(Usuario usuario);
+    Short registerUser(Usuario usuario) throws SQLException;
 
-    void updateUser(Usuario usuario);
+    void updateUser(Usuario usuario) throws SQLException;
 
-    void removeUser(Short id);
+    void removeUser(Short id) throws SQLException;
 
 }

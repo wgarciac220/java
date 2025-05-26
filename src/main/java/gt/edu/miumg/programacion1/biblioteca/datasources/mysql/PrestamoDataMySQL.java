@@ -5,12 +5,14 @@
 package gt.edu.miumg.programacion1.biblioteca.datasources.mysql;
 
 import gt.edu.miumg.programacion1.biblioteca.datasources.IPrestamoData;
+import gt.edu.miumg.programacion1.biblioteca.dto.HistorialConLibro;
 import gt.edu.miumg.programacion1.biblioteca.modelos.HistorialPrestamo;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,59 +34,68 @@ public class PrestamoDataMySQL implements IPrestamoData {
     }
 
     @Override
-    public List<HistorialPrestamo> getAllBorrowings() {
-        List<HistorialPrestamo> historial = new ArrayList<>();
+    public List<HistorialConLibro> getAllBorrowings() throws SQLException {
+        List<HistorialConLibro> historial = new ArrayList<>();
 
         String sql = """
-            SELECT id, usuarioId, libroId, fechaPrestamo, estado, fechaDevolucion, multa
+            SELECT historialprestamos.id, usuarioId, libroId, fechaPrestamo, historialprestamos.estado, fechaDevolucion, multa, libro.titulo, resena, historialprestamos.rating
             FROM historialprestamos
+            LEFT JOIN libro ON historialprestamos.libroId = libro.id
         """;
 
         try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                historial.add(new HistorialPrestamo(
-                        rs.getShort("id"),
+                historial.add(new HistorialConLibro(
+                        rs.getShort("historialprestamos.id"),
                         rs.getShort("usuarioId"),
                         rs.getShort("libroId"),
                         rs.getTimestamp("fechaPrestamo").toLocalDateTime(),
-                        rs.getString("estado"),
+                        rs.getString("historialprestamos.estado"),
                         rs.getTimestamp("fechaDevolucion").toLocalDateTime(),
-                        rs.getBigDecimal("multa")
+                        rs.getBigDecimal("multa"),
+                        rs.getString("resena"),
+                        rs.getByte("historialprestamos.rating"),
+                        rs.getString("libro.titulo")
                 ));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return historial;
     }
 
     @Override
-    public void registerBorrowing(HistorialPrestamo prestamo) {
+    public Short registerBorrowing(HistorialPrestamo prestamo) throws SQLException {
         String sql = """
-            INSERT INTO historialprestamos (usuarioId, libroId, fechaPrestamo, estado, fechaDevolucion, multa)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO historialprestamos (usuarioId, libroId, fechaPrestamo, estado, fechaDevolucion, multa, resena, rating)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setShort(1, prestamo.getUsuarioId());
             stmt.setShort(2, prestamo.getLibroId());
             stmt.setTimestamp(3, Timestamp.valueOf(prestamo.getFechaPrestamo()));
             stmt.setString(4, prestamo.getEstado());
             stmt.setTimestamp(5, Timestamp.valueOf(prestamo.getFechaDevolucion()));
             stmt.setBigDecimal(6, prestamo.getMulta());
+            stmt.setString(7, prestamo.getResena());
+            stmt.setByte(8, prestamo.getRating());
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getShort(1); // ID generado
+                }
+            }
         }
+
+        return null;
     }
 
     @Override
-    public void updateBorrowing(HistorialPrestamo prestamo) {
+    public void updateBorrowing(HistorialPrestamo prestamo) throws SQLException {
         String sql = """
             UPDATE historialprestamos
-            SET usuarioId=?, libroId=?, fechaPrestamo=?, estado=?, fechaDevolucion=?, multa=?
+            SET usuarioId=?, libroId=?, fechaPrestamo=?, estado=?, fechaDevolucion=?, multa=?, resena=?, rating=?
             WHERE id=?
         """;
 
@@ -95,16 +106,16 @@ public class PrestamoDataMySQL implements IPrestamoData {
             stmt.setString(4, prestamo.getEstado());
             stmt.setTimestamp(5, Timestamp.valueOf(prestamo.getFechaDevolucion()));
             stmt.setBigDecimal(6, prestamo.getMulta());
-            stmt.setShort(7, prestamo.getId());
+            stmt.setString(7, prestamo.getResena());
+            stmt.setByte(8, prestamo.getRating());
+            stmt.setShort(9, prestamo.getId());
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void removeBorrowing(Short id) {
+    public void removeBorrowing(Short id) throws SQLException {
         String sql = """
             DELETE FROM historialprestamos
             WHERE id = ?
@@ -113,9 +124,26 @@ public class PrestamoDataMySQL implements IPrestamoData {
         try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setShort(1, id);
             stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean hasActiveBorrowing(short usuarioId, short libroId) throws SQLException {
+        String sql = """
+            SELECT COUNT(*) FROM historialprestamos
+            WHERE usuarioId = ? AND libroId = ? AND LOWER(estado) = 'prestado'
+        """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setShort(1, usuarioId);
+            stmt.setShort(2, libroId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+
+        return false;
     }
 }

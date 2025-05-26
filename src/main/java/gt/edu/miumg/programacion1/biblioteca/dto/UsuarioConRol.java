@@ -1,12 +1,17 @@
-package gt.edu.miumg.programacion1.biblioteca.modelos;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package gt.edu.miumg.programacion1.biblioteca.dto;
 
+import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import java.time.LocalDate;
 
 /**
  *
- * @author wgarciac
+ * @author willc
  */
-public class Usuario {
+public class UsuarioConRol {
 
     /**
      * @return the id
@@ -120,7 +125,21 @@ public class Usuario {
         this.contrasena = contrasena;
     }
 
-    public Usuario(Short id, String name, String email, Short rolId, String fotografia, LocalDate fechaRegistro, String salt, String contrasena) {
+    /**
+     * @return the rolNombre
+     */
+    public String getRolNombre() {
+        return rolNombre;
+    }
+
+    /**
+     * @param rolNombre the rolNombre to set
+     */
+    public void setRolNombre(String rolNombre) {
+        this.rolNombre = rolNombre;
+    }
+
+    public UsuarioConRol(Short id, String name, String email, Short rolId, String fotografia, LocalDate fechaRegistro, String salt, String contrasena, String rolNombre) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -129,11 +148,20 @@ public class Usuario {
         this.fechaRegistro = fechaRegistro;
         this.salt = salt;
         this.contrasena = contrasena;
+        this.rolNombre = rolNombre;
     }
 
-    @Override
-    public String toString() {
-        return this.name;
+    public Usuario toUsuario() {
+        return new Usuario(
+                this.id,
+                this.name,
+                this.email,
+                this.rolId,
+                this.fotografia,
+                this.fechaRegistro,
+                this.salt,
+                this.contrasena
+        );
     }
 
     private Short id;
@@ -144,4 +172,5 @@ public class Usuario {
     private LocalDate fechaRegistro;
     private String salt;
     private String contrasena;
+    private String rolNombre;
 }

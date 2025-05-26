@@ -29,7 +29,7 @@ public class RecordarUsuarioDataMySQL implements IRecordarData {
     }
 
     @Override
-    public RecordarUsuario getRememberedUser() {
+    public RecordarUsuario getRememberedUser() throws SQLException {
         RecordarUsuario usuario = null;
 
         String sql = """
@@ -45,15 +45,13 @@ public class RecordarUsuarioDataMySQL implements IRecordarData {
                 );
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return usuario;
     }
 
     @Override
-    public void registerRememberedUser(RecordarUsuario usuario) {
+    public void registerRememberedUser(RecordarUsuario usuario) throws SQLException {
         String deleteSql = """
             DELETE
             FROM recordarusuario
@@ -75,13 +73,11 @@ public class RecordarUsuarioDataMySQL implements IRecordarData {
                 insertStmt.executeUpdate();
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void removeRememberedUser() {
+    public void removeRememberedUser() throws SQLException {
         String sql = """
             DELETE
             FROM recordarusuario
@@ -90,8 +86,6 @@ public class RecordarUsuarioDataMySQL implements IRecordarData {
         try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }

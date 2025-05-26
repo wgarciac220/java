@@ -4,19 +4,18 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.RolData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.UsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.IRolData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.IUsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.RolDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.UsuarioDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.dto.UsuarioConRol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Rol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import gt.edu.miumg.programacion1.biblioteca.util.Password;
 import gt.edu.miumg.programacion1.biblioteca.vistas.UsuarioForm;
-import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.RowFilter;
@@ -28,24 +27,21 @@ import javax.swing.event.ListSelectionEvent;
  */
 public class UsuarioController {
 
-    private static final String DATA_USUARIOS = "data/usuarios.json";
-    private static final String DATA_ROLES = "data/roles.json";
-    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
-    private static final String user = "root";
-    private static final String password = "dimrnyW-9";
+    private static final String URL = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String USER = "root";
+    private static final String PASSWORD = "dimrnyW-9";
 
-    private List<Usuario> usuarios;
+    private List<UsuarioConRol> usuarios;
     private List<Rol> roles;
     private UsuarioForm userForm;
-    private UsuarioData data;
+    private IUsuarioData dataUsuario;
 
-    public UsuarioController() {
+    public UsuarioController() throws SQLException {
         try {
-            RolData rolData = new RolData(DATA_ROLES);
-            roles = rolData.cargarRoles();
-
-            data = new UsuarioData(DATA_USUARIOS);
-            this.usuarios = data.cargarUsuarios();
+            IRolData rolData = new RolDataMySQL(URL, USER, PASSWORD);
+            this.roles = rolData.getAllRoles();
+            this.dataUsuario = new UsuarioDataMySQL(URL, USER, PASSWORD);
+            this.usuarios = this.dataUsuario.getAllUsers();
 
             this.userForm = new UsuarioForm(roles);
             this.userForm.fotografiaField.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -62,8 +58,8 @@ public class UsuarioController {
 
             this.LlenarComboboxRol();
             this.LlenarTablaUsuarios();
-        } catch (IOException ex) {
-            Logger.getLogger(UsuarioController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.userForm, "Ocurrió un error al cargar los usuarios:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -81,81 +77,90 @@ public class UsuarioController {
     }
 
     private void SaveData() {
-        String userName = this.userForm.nameField.getText().trim();
-        String userMail = this.userForm.emailField.getText().trim();
-        String userPhoto = this.userForm.fotografiaField.getText().trim();
-        String userPassword = this.userForm.passwordField.getText().trim();
+        try {
+            Rol rolSeleccionado = (Rol) this.userForm.puestoComboBox.getSelectedItem();
 
-        if (userName.isEmpty() || userMail.isEmpty()) {
-            JOptionPane.showMessageDialog(this.userForm, "Por favor llena los campos obligatorios:\nNombre, Email y Contraseña.",
-                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            String userName = this.userForm.nameField.getText().trim();
+            Short idRol = rolSeleccionado.getId();
+            String userMail = this.userForm.emailField.getText().trim();
+            String userPhoto = this.userForm.fotografiaField.getText().trim();
+            String userPassword = this.userForm.passwordField.getText().trim();
 
-        boolean isNewRecord = this.userForm.idField.getText().isBlank();
-
-        Short idUser;
-        String salt;
-        String passwordHash;
-        LocalDate userRegisterOn;
-        if (isNewRecord) {
-            if (userPassword.isEmpty()) {
-                JOptionPane.showMessageDialog(this.userForm, "El campo Contraseña es obligatorio.", "Datos incompletos", JOptionPane.WARNING_MESSAGE);
+            if (userName.isEmpty() || userMail.isEmpty()) {
+                JOptionPane.showMessageDialog(this.userForm, "Por favor llena los campos obligatorios:\nNombre, Email y Contraseña.",
+                        "Datos incompletos", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            idUser = (short) (this.usuarios.stream().mapToInt(usuario -> usuario.getId()).max().orElse(0) + 1);
-            salt = Password.generarSalt();
-            passwordHash = Password.hashPassword(userPassword, salt);
-            userRegisterOn = LocalDate.now();
-        } else {
-            idUser = Short.valueOf(this.userForm.idField.getText());
-            Usuario existingUser = this.usuarios.stream()
-                    .filter(usuario -> usuario.getId().equals(idUser))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            userRegisterOn = existingUser.getFechaRegistro();
+            boolean isNewRecord = this.userForm.idField.getText().isBlank();
+            Short idUser = isNewRecord ? null : Short.valueOf(this.userForm.idField.getText());
 
-            if (userPassword.isEmpty()) {
-                salt = existingUser.getSalt();
-                passwordHash = existingUser.getContrasena();
-            } else {
+            String salt;
+            String passwordHash;
+            LocalDate userRegisterOn;
+            if (isNewRecord) {
+                if (userPassword.isEmpty()) {
+                    JOptionPane.showMessageDialog(this.userForm, "El campo Contraseña es obligatorio.", "Datos incompletos", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
                 salt = Password.generarSalt();
                 passwordHash = Password.hashPassword(userPassword, salt);
+                userRegisterOn = LocalDate.now();
+            } else {
+                UsuarioConRol existingUser = this.usuarios.stream()
+                        .filter(usuario -> usuario.getId().equals(idUser))
+                        .findFirst()
+                        .orElse(null);
+
+                userRegisterOn = existingUser.getFechaRegistro();
+
+                if (userPassword.isEmpty()) {
+                    salt = existingUser.getSalt();
+                    passwordHash = existingUser.getContrasena();
+                } else {
+                    salt = Password.generarSalt();
+                    passwordHash = Password.hashPassword(userPassword, salt);
+                }
             }
+
+            Usuario usuario = new Usuario(idUser, userName, userMail, idRol, userPhoto, userRegisterOn, salt, passwordHash);
+
+            if (isNewRecord) {
+                Short nuevoId = this.dataUsuario.registerUser(usuario);
+                if (nuevoId != null) {
+                    JOptionPane.showMessageDialog(this.userForm, "Usuario registrado exitosamente con ID: " + nuevoId, "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this.userForm, "No se pudo registrar el usuario.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                this.dataUsuario.updateUser(usuario);
+                JOptionPane.showMessageDialog(this.userForm, "Usuario actualizado exitosamente.", "Actualización exitosa", JOptionPane.INFORMATION_MESSAGE);
+
+            }
+
+            this.usuarios = this.dataUsuario.getAllUsers();
+            this.LlenarTablaUsuarios();
+            ClearFieldsData();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.userForm, "Error en la base de datos: " + ex.getMessage(), "Error de guardado", JOptionPane.ERROR_MESSAGE);
         }
-
-        Short idRol = roles.stream()
-                .filter(role -> role.getNombreRol().equals(this.userForm.puestoComboBox.getSelectedItem()))
-                .map(Rol::getId)
-                .findFirst()
-                .orElse((short) 0);
-
-        Usuario usuario = new Usuario(idUser, userName, userMail, idRol, userPhoto, userRegisterOn, salt, passwordHash);
-
-        if (isNewRecord) {
-            this.usuarios.add(usuario);
-        } else {
-            this.usuarios = this.usuarios.stream()
-                    .map(u -> u.getId().equals(usuario.getId()) ? usuario : u)
-                    .collect(Collectors.toList());
-
-        }
-
-        ClearFieldsData();
-        data.guardarUsuarios(this.usuarios);
-        this.LlenarTablaUsuarios();
     }
 
     private void DeleteData() {
-        Short idUser = Short.valueOf(this.userForm.idField.getText());
-        this.usuarios = this.usuarios.stream()
-                .filter(usuario -> !Objects.equals(usuario.getId(), idUser))
-                .collect(Collectors.toList());
+        try {
+            Short idUser = Short.valueOf(this.userForm.idField.getText());
+            this.dataUsuario.removeUser(idUser);
 
-        this.ClearFieldsData();
-        data.guardarUsuarios(this.usuarios);
-        this.LlenarTablaUsuarios();
+            this.usuarios = this.dataUsuario.getAllUsers();
+            this.LlenarTablaUsuarios();
+            this.ClearFieldsData();
+        } catch (SQLException ex) {
+            if (ex.getMessage().contains("foreign key constraint fails")) {
+                JOptionPane.showMessageDialog(userForm, "No se puede eliminar el usuario porque tiene libros y reseñas asociados.\nElimine o reasigne esos libros/reseñas primero.", "Error de integridad referencial", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this.userForm, "Ocurrió un error al eliminar el libro:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void ApplyFilter() {
@@ -170,7 +175,7 @@ public class UsuarioController {
 
     private void LlenarComboboxRol() {
         for (Rol rol : this.roles) {
-            this.userForm.puestoComboBox.addItem(rol.getNombreRol());
+            this.userForm.puestoComboBox.addItem(rol);
         }
     }
 
@@ -178,13 +183,14 @@ public class UsuarioController {
         this.userForm.tablaUsuarios.clearSelection();
         this.userForm.modeloTabla.setRowCount(0); // Limpiar tabla
 
-        for (Usuario usuario : this.usuarios) {
+        for (UsuarioConRol usuario : this.usuarios) {
             Object[] fila = {
                 usuario.getId(),
                 usuario.getName(),
                 usuario.getEmail(),
                 usuario.getFotografia(),
-                getNombreRolById(usuario.getRolId())
+                usuario.getRolNombre(),
+                usuario.getRolId()
             };
             this.userForm.modeloTabla.addRow(fila);
         }
@@ -201,15 +207,15 @@ public class UsuarioController {
         }
 
         int modelRow = this.userForm.tablaUsuarios.convertRowIndexToModel(selectedRow);   // indice a modelo
+        int indice = obtenerIndiceRolPorId(Short.valueOf(this.userForm.modeloTabla.getValueAt(modelRow, 5).toString()));
 
         this.userForm.idField.setText(this.userForm.modeloTabla.getValueAt(modelRow, 0).toString());
         this.userForm.nameField.setText(this.userForm.modeloTabla.getValueAt(modelRow, 1).toString());
         this.userForm.emailField.setText(this.userForm.modeloTabla.getValueAt(modelRow, 2).toString());
         this.userForm.fotografiaField.setText(this.userForm.modeloTabla.getValueAt(modelRow, 3).toString());
+        this.userForm.puestoComboBox.setSelectedIndex(indice);
         this.userForm.passwordField.setText("");
 
-        String nombreRol = this.userForm.modeloTabla.getValueAt(modelRow, 4).toString();
-        this.userForm.puestoComboBox.setSelectedItem(nombreRol);
     }
 
     private void SeleccionarFotografia() {
@@ -236,12 +242,13 @@ public class UsuarioController {
         }
     }
 
-    private String getNombreRolById(Short id) {
-        for (Rol rol : this.roles) {
-            if (rol.getId().equals(id)) {
-                return rol.getNombreRol();
+    private int obtenerIndiceRolPorId(Short rolId) {
+        for (int i = 0; i < this.userForm.puestoComboBox.getItemCount(); i++) {
+            Rol rol = (Rol) this.userForm.puestoComboBox.getItemAt(i);
+            if (rol.getId().equals(rolId)) {
+                return i;
             }
         }
-        return null; // Si no se encuentra
+        return -1; // No encontrado
     }
 }

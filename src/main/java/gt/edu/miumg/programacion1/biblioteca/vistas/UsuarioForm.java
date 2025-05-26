@@ -38,7 +38,7 @@ public class UsuarioForm extends JPanel {
     public JTextField idField;
     public JTextField nameField;
     public JTextField emailField;
-    public JComboBox<String> puestoComboBox;
+    public JComboBox<Rol> puestoComboBox;
     public JTextField fotografiaField;
     public JTextField passwordField;
     public JButton nuevoBtn;
@@ -159,7 +159,7 @@ public class UsuarioForm extends JPanel {
         botonesPanel.add(eliminarBtn, gbcBotones);
 
         // Tabla
-        String[] columnas = {"ID", "Nombre", "e-mail", "Fotografia", "Rol"};
+        String[] columnas = {"ID", "Nombre", "e-mail", "Fotografia", "Rol", "RolId"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -177,6 +177,9 @@ public class UsuarioForm extends JPanel {
         tablaUsuarios.getColumnModel().getColumn(3).setPreferredWidth(100);  // Fotografía
         tablaUsuarios.getColumnModel().getColumn(3).setCellRenderer(new ImageRenderer());
         tablaUsuarios.getColumnModel().getColumn(4).setPreferredWidth(120);  // Rol
+        tablaUsuarios.getColumnModel().getColumn(5).setMinWidth(0);  // columna AutorID oculta
+        tablaUsuarios.getColumnModel().getColumn(5).setMaxWidth(0);
+        tablaUsuarios.getColumnModel().getColumn(5).setWidth(0);
 
         JScrollPane tablaScroll = new JScrollPane(tablaUsuarios);
         tablaScroll.setPreferredSize(new Dimension(610, 250));

@@ -4,23 +4,24 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.AutorData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.LibroData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.PrestamoData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.UsuarioData;
-import gt.edu.miumg.programacion1.biblioteca.modelos.Autor;
+import gt.edu.miumg.programacion1.biblioteca.datasources.ILibroData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.IPrestamoData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.IUsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.LibroDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.PrestamoDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.UsuarioDataMySQL;
+import gt.edu.miumg.programacion1.biblioteca.dto.HistorialConLibro;
+import gt.edu.miumg.programacion1.biblioteca.dto.LibroConAutor;
+import gt.edu.miumg.programacion1.biblioteca.dto.UsuarioConRol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.HistorialPrestamo;
-import gt.edu.miumg.programacion1.biblioteca.modelos.Libro;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import gt.edu.miumg.programacion1.biblioteca.vistas.PrestamosForm;
-import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
@@ -31,52 +32,45 @@ import javax.swing.event.ListSelectionEvent;
  */
 public class PrestarContoller {
 
-    private static final String DATA_LIBROS = "data/libros.json";
-    private static final String DATA_AUTORES = "data/autores.json";
-    private static final String DATA_USUARIOS = "data/usuarios.json";
-    private static final String DATA_PRESTAMOS = "data/prestamos.json";
-    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
-    private static final String user = "root";
-    private static final String password = "dimrnyW-9";
+    private static final String URL = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String USER = "root";
+    private static final String PASSWORD = "dimrnyW-9";
 
-    private LibroData data;
-    private List<Libro> libros;
-    private AutorData dataAutor;
-    private List<Autor> autores;
-    private UsuarioData usuarioData;
-    private List<Usuario> usuarios;
-    private PrestamoData prestamoData;
-    private List<HistorialPrestamo> prestamos;
+    private ILibroData dataLibro;
+    private List<LibroConAutor> libros;
+    private IUsuarioData dataUsuario;
+    private List<UsuarioConRol> usuarios;
+    private IPrestamoData dataPrestamo;
+    private List<HistorialConLibro> prestamos;
 
     private PrestamosForm prestarForm;
 
     public PrestarContoller() {
         try {
-            this.data = new LibroData(DATA_LIBROS);
-            this.libros = data.cargarLibros();
-            this.dataAutor = new AutorData(DATA_AUTORES);
-            this.autores = dataAutor.cargarAutores();
-            this.usuarioData = new UsuarioData(DATA_USUARIOS);
-            this.usuarios = usuarioData.cargarUsuarios();
-            this.prestamoData = new PrestamoData(DATA_PRESTAMOS);
-            this.prestamos = prestamoData.cargarHistorial();
+            this.dataLibro = new LibroDataMySQL(URL, USER, PASSWORD);
+            this.libros = dataLibro.getAllBooks();
+            this.dataUsuario = new UsuarioDataMySQL(URL, USER, PASSWORD);
+            this.usuarios = dataUsuario.getAllUsers();
+            this.dataPrestamo = new PrestamoDataMySQL(URL, USER, PASSWORD);
+            this.prestamos = dataPrestamo.getAllBorrowings();
 
             LocalDate fechaDevolucion = LocalDate.now().plusDays(15);
             DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             String fechaTexto = fechaDevolucion.format(formato);
 
             this.prestarForm = new PrestamosForm();
+            this.prestarForm.tituloField.setEnabled(false);
             this.prestarForm.fechaField.setText(fechaTexto);
+            this.prestarForm.fechaField.setEnabled(false);
             this.prestarForm.prestarBtn.addActionListener(e -> this.SaveData());
             this.prestarForm.aplicarFiltroBtn.addActionListener(e -> this.ApplyFilter());
             this.prestarForm.tablaLibros.getSelectionModel().addListSelectionListener(e -> this.LlenarDetallesLibro(e));
 
             this.LlenarTablaLibros();
             this.LlenarComboboxUsuario();
-        } catch (IOException ex) {
-            Logger.getLogger(PrestarContoller.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.prestarForm, "Ocurrió un error al cargar los libros:\n" + ex.getMessage(), "Error de base de datos", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     public PrestamosForm Mostrar() {
@@ -90,32 +84,47 @@ public class PrestarContoller {
     }
 
     private void SaveData() {
-        String idTitulo = this.prestarForm.tituloField.getText().trim();
-        String usuarioNombre = this.prestarForm.usuarioCombobox.getSelectedItem().toString();
-        String devolucion = this.prestarForm.fechaField.getText().trim();
+        try {
+            String idTitulo = this.prestarForm.tituloField.getText().trim();
+            Usuario usuarioSeleccionado = (Usuario) this.prestarForm.usuarioCombobox.getSelectedItem();
+            String devolucion = this.prestarForm.fechaField.getText().trim();
 
-        if (idTitulo.isEmpty() || usuarioNombre.isEmpty() || devolucion.isEmpty()) {
-            JOptionPane.showMessageDialog(this.prestarForm, "Por favor llena los campos obligatorios:\nId Libro, Usuario.",
-                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
-            return;
+            if (idTitulo.isEmpty() || usuarioSeleccionado.getName().isEmpty() || devolucion.isEmpty()) {
+                JOptionPane.showMessageDialog(this.prestarForm, "Por favor llena los campos obligatorios:\nId Libro, Usuario.",
+                        "Datos incompletos", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            LocalDateTime fechaPrestamo = LocalDateTime.now();
+            DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            LocalDate fecha = LocalDate.parse(devolucion, formato);
+
+            Short idPrestamo = null;
+            BigDecimal multa = BigDecimal.valueOf(0.0);
+            LocalDateTime fechaDevolucion = fecha.atStartOfDay();
+            Short idLibro = (short) Integer.parseInt(idTitulo);
+            Short idUsuario = usuarioSeleccionado.getId();
+
+            HistorialPrestamo historial = new HistorialPrestamo(idPrestamo, idUsuario, idLibro, fechaPrestamo, "Prestado", fechaDevolucion, multa, "", (byte) 0);
+
+            if (dataPrestamo.hasActiveBorrowing(historial.getUsuarioId(), historial.getLibroId())) {
+                JOptionPane.showMessageDialog(prestarForm, "El usuario ya tiene un préstamo activo de este libro.", "Préstamo duplicado", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Short nuevoId = this.dataPrestamo.registerBorrowing(historial);
+            if (nuevoId != null) {
+                JOptionPane.showMessageDialog(this.prestarForm, "Prestamo registrado exitosamente con ID: " + nuevoId, "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this.prestarForm, "No se pudo registrar el prestamo.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+            this.prestamos = dataPrestamo.getAllBorrowings();
+            this.LlenarTablaLibros();
+            this.ClearFieldsData();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this.prestarForm, "Error en la base de datos: " + ex.getMessage(), "Error de guardado", JOptionPane.ERROR_MESSAGE);
         }
-
-        LocalDateTime fechaPrestamo = LocalDateTime.now();
-//        LocalDate fecha = LocalDate.parse(devolucion);
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        LocalDate fecha = LocalDate.parse(devolucion, formato);
-
-        LocalDateTime fechaDevolucion = fecha.atStartOfDay();
-        Short idLibro = (short) Integer.parseInt(idTitulo);
-        Short idUsuario = this.getIdUsuariobyName(usuarioNombre);
-        Short idPrestamo = (short) (this.prestamos.stream().mapToInt(historial -> historial.getId()).max().orElse(0) + 1);
-        BigDecimal multa = BigDecimal.valueOf(0.0);
-
-        HistorialPrestamo historial = new HistorialPrestamo(idPrestamo, idUsuario, idLibro, fechaPrestamo, "Prestado", fechaDevolucion, multa);
-
-        this.prestamos.add(historial);
-        prestamoData.guardarHistorial(this.prestamos);
-        this.ClearFieldsData();
     }
 
     private void ApplyFilter() {
@@ -132,11 +141,11 @@ public class PrestarContoller {
         this.prestarForm.tablaLibros.clearSelection();
         this.prestarForm.modeloTabla.setRowCount(0); // Limpiar tabla
 
-        for (Libro libro : this.libros) {
+        for (LibroConAutor libro : this.libros) {
             Object[] fila = {
                 libro.getId(),
                 libro.getTitulo(),
-                this.getNombreAutorById(libro.getAutorId()),
+                libro.getAutorNombre(),
                 libro.getEditorial(),
                 libro.getPortada(),
                 libro.getIsbn(),
@@ -144,7 +153,9 @@ public class PrestarContoller {
                 libro.getGenero(),
                 libro.getAnoPublicacion(),
                 libro.getEstado(),
-                libro.getCantidad(),};
+                libro.getCantidad() - libro.getPrestados(),
+                libro.getRating()
+            };
             this.prestarForm.modeloTabla.addRow(fila);
         }
     }
@@ -160,31 +171,16 @@ public class PrestarContoller {
         }
 
         int modelRow = this.prestarForm.tablaLibros.convertRowIndexToModel(selectedRow);   // indice a modelo
+        String estado = this.prestarForm.modeloTabla.getValueAt(modelRow, 9).toString();
+        Short cantidad = Short.valueOf(this.prestarForm.modeloTabla.getValueAt(modelRow, 10).toString());
 
         this.prestarForm.tituloField.setText(this.prestarForm.modeloTabla.getValueAt(modelRow, 0).toString());
+        this.prestarForm.prestarBtn.setEnabled(estado.equalsIgnoreCase("disponible") && cantidad > 0);
     }
 
     private void LlenarComboboxUsuario() {
-        for (Usuario usuario : this.usuarios) {
-            this.prestarForm.usuarioCombobox.addItem(usuario.getName());
+        for (UsuarioConRol usuario : this.usuarios) {
+            this.prestarForm.usuarioCombobox.addItem(usuario.toUsuario());
         }
-    }
-
-    private String getNombreAutorById(Short id) {
-        for (Autor autor : this.autores) {
-            if (autor.getId().equals(id)) {
-                return autor.getNombre();
-            }
-        }
-        return null; // Si no se encuentra
-    }
-
-    private Short getIdUsuariobyName(String nombreUsuario) {
-        for (Usuario usuario : this.usuarios) {
-            if (usuario.getName().equals(nombreUsuario)) {
-                return usuario.getId();
-            }
-        }
-        return null; // Si no se encuentra
     }
 }

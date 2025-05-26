@@ -2,16 +2,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package gt.edu.miumg.programacion1.biblioteca.modelos;
+package gt.edu.miumg.programacion1.biblioteca.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  *
- * @author wgarciac
+ * @author willc
  */
-public class HistorialPrestamo {
+public class HistorialConLibro {
 
     /**
      * @return the id
@@ -139,7 +139,21 @@ public class HistorialPrestamo {
         this.rating = rating;
     }
 
-    public HistorialPrestamo(Short id, Short usuarioId, Short libroId, LocalDateTime fechaPrestamo, String estado, LocalDateTime fechaDevolucion, BigDecimal multa, String resena, byte rating) {
+    /**
+     * @return the libroTitulo
+     */
+    public String getLibroTitulo() {
+        return libroTitulo;
+    }
+
+    /**
+     * @param libroTitulo the libroTitulo to set
+     */
+    public void setLibroTitulo(String libroTitulo) {
+        this.libroTitulo = libroTitulo;
+    }
+
+    public HistorialConLibro(Short id, Short usuarioId, Short libroId, LocalDateTime fechaPrestamo, String estado, LocalDateTime fechaDevolucion, BigDecimal multa, String resena, byte rating, String libroTitulo) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.libroId = libroId;
@@ -149,6 +163,7 @@ public class HistorialPrestamo {
         this.multa = multa;
         this.resena = resena;
         this.rating = rating;
+        this.libroTitulo = libroTitulo;
     }
 
     private Short id;
@@ -160,4 +175,5 @@ public class HistorialPrestamo {
     private BigDecimal multa;
     private String resena;
     private byte rating;
+    private String libroTitulo;
 }

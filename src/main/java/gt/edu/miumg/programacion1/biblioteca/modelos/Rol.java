@@ -43,6 +43,11 @@ public class Rol {
         this.nombreRol = nombreRol;
     }
 
+    @Override
+    public String toString() {
+        return this.nombreRol;
+    }
+
     private Short id;
     private String nombreRol;
 }

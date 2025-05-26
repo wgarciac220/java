@@ -6,19 +6,16 @@ package gt.edu.miumg.programacion1.biblioteca.controladores;
 
 import gt.edu.miumg.programacion1.biblioteca.datasources.IAutorData;
 import gt.edu.miumg.programacion1.biblioteca.datasources.ILibroData;
-import gt.edu.miumg.programacion1.biblioteca.datasources.json.ResenaData;
 import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.AutorDataMySQL;
 import gt.edu.miumg.programacion1.biblioteca.datasources.mysql.LibroDataMySQL;
 import gt.edu.miumg.programacion1.biblioteca.dto.LibroConAutor;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Autor;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Libro;
-import gt.edu.miumg.programacion1.biblioteca.modelos.Resena;
 import gt.edu.miumg.programacion1.biblioteca.vistas.LibroForm;
 import java.sql.SQLException;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.RowFilter;
@@ -31,9 +28,9 @@ import javax.swing.event.ListSelectionEvent;
 public class LibroController {
 
     private static final String DATA_RESENAS = "data/resenas.json";
-    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
-    private static final String user = "root";
-    private static final String password = "dimrnyW-9";
+    private static final String URL = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String USER = "root";
+    private static final String PASSWORD = "dimrnyW-9";
 
     private LibroForm libroForm;
 
@@ -43,9 +40,6 @@ public class LibroController {
     private IAutorData dataAutor;
     private List<Autor> autores;
 
-    private ResenaData resenaData;
-    private List<Resena> resenas;
-
     private List<String> estados;
 
     public LibroController() {
@@ -53,9 +47,9 @@ public class LibroController {
             //            this.resenaData = new ResenaData(DATA_RESENAS);
 //            this.resenas = resenaData.cargaResenas();
 
-            this.dataLibro = new LibroDataMySQL(url, user, password);
+            this.dataLibro = new LibroDataMySQL(URL, USER, PASSWORD);
             this.libros = dataLibro.getAllBooks();
-            this.dataAutor = new AutorDataMySQL(url, user, password);
+            this.dataAutor = new AutorDataMySQL(URL, USER, PASSWORD);
             this.autores = dataAutor.getAllAuthors();
 
             this.estados = new ArrayList<>();
@@ -273,20 +267,20 @@ public class LibroController {
         return -1; // No encontrado
     }
 
-    private float calcularPromedioRating(Short libroId) {
-        List<Resena> reseñasDelLibro = this.resenas.stream()
-                .filter(r -> r.getLibroId().equals(libroId))
-                .collect(Collectors.toList());
-
-        if (reseñasDelLibro.isEmpty()) {
-            return 0.0f;
-        }
-
-        float total = 0;
-        for (Resena r : reseñasDelLibro) {
-            total += r.getRating();
-        }
-
-        return total / reseñasDelLibro.size();
-    }
+//    private float calcularPromedioRating(Short libroId) {
+//        List<Resena> reseñasDelLibro = this.resenas.stream()
+//                .filter(r -> r.getLibroId().equals(libroId))
+//                .collect(Collectors.toList());
+//
+//        if (reseñasDelLibro.isEmpty()) {
+//            return 0.0f;
+//        }
+//
+//        float total = 0;
+//        for (Resena r : reseñasDelLibro) {
+//            total += r.getRating();
+//        }
+//
+//        return total / reseñasDelLibro.size();
+//    }
 }

@@ -4,7 +4,9 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.datasources;
 
+import gt.edu.miumg.programacion1.biblioteca.dto.HistorialConLibro;
 import gt.edu.miumg.programacion1.biblioteca.modelos.HistorialPrestamo;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -13,12 +15,14 @@ import java.util.List;
  */
 public interface IPrestamoData {
 
-    List<HistorialPrestamo> getAllBorrowings();
+    List<HistorialConLibro> getAllBorrowings() throws SQLException;
 
-    void registerBorrowing(HistorialPrestamo prestamo);
+    Short registerBorrowing(HistorialPrestamo prestamo) throws SQLException;
 
-    void updateBorrowing(HistorialPrestamo prestamo);
+    void updateBorrowing(HistorialPrestamo prestamo) throws SQLException;
 
-    void removeBorrowing(Short id);
+    void removeBorrowing(Short id) throws SQLException;
+
+    boolean hasActiveBorrowing(short usuarioId, short libroId) throws SQLException;
 
 }

@@ -4,14 +4,18 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.controladores;
 
+import gt.edu.miumg.programacion1.biblioteca.dto.UsuarioConRol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import gt.edu.miumg.programacion1.biblioteca.vistas.MenuForm;
 import gt.edu.miumg.programacion1.biblioteca.vistas.UsuarioForm;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -23,14 +27,14 @@ public class MenuController {
 
     private static final String DATA_USUARIOS = "data/usuarios.json";
     private static final String DATA_ROLES = "data/roles.json";
-    private static final String url = "jdbc:mysql://localhost:3306/biblioteca";
-    private static final String user = "root";
-    private static final String password = "dimrnyW-9";
+    private static final String URL = "jdbc:mysql://localhost:3306/biblioteca";
+    private static final String USER = "root";
+    private static final String PASSWORD = "dimrnyW-9";
 
     private List<Usuario> usuarios;
     private MenuForm menuForm;
     private UsuarioForm userForm;
-    private Usuario usuarioLogueado;
+    private UsuarioConRol usuarioLogueado;
 
     private static final Map<Short, String> ROLES = Map.of(
             (short) 1, "Administrador",
@@ -38,7 +42,7 @@ public class MenuController {
             (short) 3, "Miembro"
     );
 
-    public void setUsuario(Usuario usuario) {
+    public void setUsuario(UsuarioConRol usuario) {
         this.usuarioLogueado = usuario;
         aplicarRestriccionesPorRol();
         mostrarBienvenida();
@@ -47,8 +51,12 @@ public class MenuController {
     public MenuController() throws IOException {
         menuForm = new MenuForm();
         menuForm.usuarioButton.addActionListener(e -> {
-            UsuarioController usuarioController = new UsuarioController();
-            menuForm.mostrarPanelEnSplash(usuarioController.Mostrar());
+            try {
+                UsuarioController usuarioController = new UsuarioController();
+                menuForm.mostrarPanelEnSplash(usuarioController.Mostrar());
+            } catch (SQLException ex) {
+                Logger.getLogger(MenuController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         menuForm.libroButton.addActionListener(e -> {
             LibroController libroController = new LibroController();

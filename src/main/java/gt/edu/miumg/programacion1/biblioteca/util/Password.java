@@ -31,6 +31,7 @@ public class Password {
 
             return Base64.getEncoder().encodeToString(hashBytes);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException("Error al hashear contraseña", e);
         }
     }

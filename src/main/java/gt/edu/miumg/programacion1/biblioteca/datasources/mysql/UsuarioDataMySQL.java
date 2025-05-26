@@ -5,6 +5,7 @@
 package gt.edu.miumg.programacion1.biblioteca.datasources.mysql;
 
 import gt.edu.miumg.programacion1.biblioteca.datasources.IUsuarioData;
+import gt.edu.miumg.programacion1.biblioteca.dto.UsuarioConRol;
 import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import java.sql.Connection;
 import java.sql.Date;
@@ -12,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,44 +34,42 @@ public class UsuarioDataMySQL implements IUsuarioData {
     }
 
     @Override
-    public List<Usuario> getAllUsers() {
-        List<Usuario> usuarios = new ArrayList<>();
+    public List<UsuarioConRol> getAllUsers() throws SQLException {
+        List<UsuarioConRol> usuarios = new ArrayList<>();
 
         String sql = """
-            SELECT id, name, email, fotografia, fechaRegistro, contrasena, rolId, salt
+            SELECT usuario.id, name, email, fotografia, fechaRegistro, contrasena, rolId, salt, rol.nombreRol
             FROM usuario
+            LEFT JOIN rol ON usuario.rolId = rol.id
         """;
 
         try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                usuarios.add(new Usuario(
-                        rs.getShort("id"),
+                usuarios.add(new UsuarioConRol(
+                        rs.getShort("usuario.id"),
                         rs.getString("name"),
                         rs.getString("email"),
                         rs.getShort("rolId"),
                         rs.getString("fotografia"),
                         rs.getDate("fechaRegistro").toLocalDate(),
                         rs.getString("salt"),
-                        rs.getString("contrasena")
+                        rs.getString("contrasena"),
+                        rs.getString("rol.nombreRol")
                 ));
-
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return usuarios;
     }
 
     @Override
-    public void registerUser(Usuario usuario) {
+    public Short registerUser(Usuario usuario) throws SQLException {
         String sql = """
             INSERT INTO usuario (name, email, fotografia, fechaRegistro, contrasena, rolId, salt)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, usuario.getName());
             stmt.setString(2, usuario.getEmail());
             stmt.setString(3, usuario.getFotografia());
@@ -77,16 +77,20 @@ public class UsuarioDataMySQL implements IUsuarioData {
             stmt.setString(5, usuario.getContrasena());
             stmt.setShort(6, usuario.getRolId());
             stmt.setString(7, usuario.getSalt());
-
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getShort(1); // ID generado
+                }
+            }
         }
+
+        return null;
     }
 
     @Override
-    public void updateUser(Usuario usuario) {
+    public void updateUser(Usuario usuario) throws SQLException {
         String sql = """
             UPDATE usuario
             SET name=?, email=?, fotografia=?, fechaRegistro=?, contrasena=?, rolId=?, salt=?
@@ -104,13 +108,11 @@ public class UsuarioDataMySQL implements IUsuarioData {
             stmt.setShort(8, usuario.getId());
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void removeUser(Short id) {
+    public void removeUser(Short id) throws SQLException {
         String sql = """
             DELETE FROM usuario
             WHERE id = ?
@@ -120,9 +122,6 @@ public class UsuarioDataMySQL implements IUsuarioData {
             stmt.setShort(1, id);
             stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
-
 }

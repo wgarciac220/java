@@ -5,6 +5,7 @@
 package gt.edu.miumg.programacion1.biblioteca.datasources;
 
 import gt.edu.miumg.programacion1.biblioteca.modelos.RecordarUsuario;
+import java.sql.SQLException;
 
 /**
  *
@@ -12,10 +13,10 @@ import gt.edu.miumg.programacion1.biblioteca.modelos.RecordarUsuario;
  */
 public interface IRecordarData {
 
-    RecordarUsuario getRememberedUser();
+    RecordarUsuario getRememberedUser() throws SQLException;
 
-    void registerRememberedUser(RecordarUsuario usuario);
+    void registerRememberedUser(RecordarUsuario usuario) throws SQLException;
 
-    void removeRememberedUser();
+    void removeRememberedUser() throws SQLException;
 
 }

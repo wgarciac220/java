@@ -170,7 +170,7 @@ public class DevolucionesForm extends JPanel {
         botonesPanel.add(devolverBtn, gbcBoton);
 
         // Tabla
-        String[] columnas = {"ID", "Titulo", "Fecha Prestamo", "Estado", "Fecha Devolucion", "Rating", "Multa", "Reseña"};
+        String[] columnas = {"ID", "Titulo", "Fecha Prestamo", "Estado", "Fecha Devolucion", "Rating", "Multa", "Reseña", "Libro ID"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -189,7 +189,10 @@ public class DevolucionesForm extends JPanel {
         tablaHistorial.getColumnModel().getColumn(4).setPreferredWidth(150);  // Fecha Devolucion
         tablaHistorial.getColumnModel().getColumn(5).setPreferredWidth(120);  // Rating
         tablaHistorial.getColumnModel().getColumn(6).setPreferredWidth(120);  // Multa
-        tablaHistorial.getColumnModel().getColumn(7).setPreferredWidth(200);  // Multa
+        tablaHistorial.getColumnModel().getColumn(7).setPreferredWidth(200);  // Reseña
+        tablaHistorial.getColumnModel().getColumn(8).setMinWidth(0);  // columna AutorID oculta
+        tablaHistorial.getColumnModel().getColumn(8).setMaxWidth(0);
+        tablaHistorial.getColumnModel().getColumn(8).setWidth(0);
 
         JScrollPane tablaScroll = new JScrollPane(tablaHistorial);
         tablaScroll.setPreferredSize(new Dimension(610, 200));

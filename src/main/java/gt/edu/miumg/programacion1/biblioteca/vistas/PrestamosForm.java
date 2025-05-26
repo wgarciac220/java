@@ -5,7 +5,9 @@
 package gt.edu.miumg.programacion1.biblioteca.vistas;
 
 import gt.edu.miumg.programacion1.biblioteca.modelos.Rol;
+import gt.edu.miumg.programacion1.biblioteca.modelos.Usuario;
 import gt.edu.miumg.programacion1.biblioteca.util.ImageRenderer;
+import gt.edu.miumg.programacion1.biblioteca.util.StarRatingRenderer;
 import static gt.edu.miumg.programacion1.biblioteca.util.SwingControls.createButton;
 import static gt.edu.miumg.programacion1.biblioteca.util.SwingControls.createField;
 import static gt.edu.miumg.programacion1.biblioteca.util.SwingControls.createLabel;
@@ -36,7 +38,7 @@ import javax.swing.table.TableRowSorter;
 public class PrestamosForm extends JPanel {
 
     public JTextField tituloField;
-    public JComboBox usuarioCombobox;
+    public JComboBox<Usuario> usuarioCombobox;
     public JTextField fechaField;
     public JButton prestarBtn;
     public JTable tablaLibros;
@@ -67,29 +69,29 @@ public class PrestamosForm extends JPanel {
         ));
 
         // Fila 1: Libro
-        gbc.gridy = 1;
+        gbc.gridy = 0;
         gbc.gridx = 0;
         detailsPanel.add(createLabel("Libro seleccionado", boldFont), gbc);
         gbc.gridx = 1;
         tituloField = createField(10, regularFont);
         detailsPanel.add(tituloField, gbc);
 
-        // Fila 2: Usuario
-        gbc.gridy = 0;
+        // Fila 2: Fecha devolucion
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        detailsPanel.add(createLabel("Fecha devolucion", boldFont), gbc);
+        gbc.gridx = 1;
+        fechaField = createField(10, regularFont);
+        detailsPanel.add(fechaField, gbc);
+
+        // Fila 3: Usuario
+        gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.gridwidth = 4;
         detailsPanel.add(createLabel("Usuario", boldFont), gbc);
         gbc.gridx = 1;
         usuarioCombobox = new JComboBox<>();
         detailsPanel.add(usuarioCombobox, gbc);
-
-        // Fila 3: Pais Origen
-        gbc.gridy = 2;
-        gbc.gridx = 0;
-        detailsPanel.add(createLabel("Fecha devolucion", boldFont), gbc);
-        gbc.gridx = 1;
-        fechaField = createField(10, regularFont);
-        detailsPanel.add(fechaField, gbc);
 
         // Panel centrado para el único botón
         JPanel botonesPanel = new JPanel(new GridBagLayout());
@@ -105,7 +107,7 @@ public class PrestamosForm extends JPanel {
         botonesPanel.add(prestarBtn, gbcBoton);
 
         // Tabla
-        String[] columnas = {"ID", "Titulo", "Autor", "Editorial", "Portada", "ISBN", "Idioma", "Genero", "Publicacion", "Estado", "Cantidad"};
+        String[] columnas = {"ID", "Titulo", "Autor", "Editorial", "Portada", "ISBN", "Idioma", "Genero", "Publicacion", "Estado", "Cantidad", "Rating"};
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -130,6 +132,8 @@ public class PrestamosForm extends JPanel {
         tablaLibros.getColumnModel().getColumn(8).setPreferredWidth(100);  // Publicacion
         tablaLibros.getColumnModel().getColumn(9).setPreferredWidth(100);  // Estado
         tablaLibros.getColumnModel().getColumn(10).setPreferredWidth(80);  // Cantidad
+        tablaLibros.getColumnModel().getColumn(11).setPreferredWidth(100);  // Rating
+        tablaLibros.getColumnModel().getColumn(11).setCellRenderer(new StarRatingRenderer());
 
         JScrollPane tablaScroll = new JScrollPane(tablaLibros);
         tablaScroll.setPreferredSize(new Dimension(610, 325));

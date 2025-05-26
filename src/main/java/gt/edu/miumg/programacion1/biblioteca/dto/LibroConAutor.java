@@ -4,6 +4,7 @@
  */
 package gt.edu.miumg.programacion1.biblioteca.dto;
 
+import gt.edu.miumg.programacion1.biblioteca.modelos.Libro;
 import java.time.Year;
 
 /**
@@ -194,7 +195,21 @@ public class LibroConAutor {
         this.autorNombre = autorNombre;
     }
 
-    public LibroConAutor(Short id, String titulo, String isbn, String genero, Short cantidad, String portada, Year anoPublicacion, String editorial, String idioma, Float rating, Short autorId, String estado, String autorNombre) {
+    /**
+     * @return the prestados
+     */
+    public Short getPrestados() {
+        return prestados;
+    }
+
+    /**
+     * @param prestados the prestados to set
+     */
+    public void setPrestados(Short prestados) {
+        this.prestados = prestados;
+    }
+
+    public LibroConAutor(Short id, String titulo, String isbn, String genero, Short cantidad, String portada, Year anoPublicacion, String editorial, String idioma, Float rating, Short autorId, String estado, String autorNombre, Short prestados) {
         this.id = id;
         this.titulo = titulo;
         this.isbn = isbn;
@@ -208,6 +223,24 @@ public class LibroConAutor {
         this.autorId = autorId;
         this.estado = estado;
         this.autorNombre = autorNombre;
+        this.prestados = prestados;
+    }
+
+    public Libro toLibro() {
+        return new Libro(
+                this.id,
+                this.titulo,
+                this.isbn,
+                this.genero,
+                this.cantidad,
+                this.portada,
+                this.anoPublicacion,
+                this.editorial,
+                this.idioma,
+                this.rating,
+                this.autorId,
+                this.estado
+        );
     }
 
     private Short id;
@@ -223,4 +256,5 @@ public class LibroConAutor {
     private Short autorId;
     private String estado;
     private String autorNombre;
+    private Short prestados;
 }

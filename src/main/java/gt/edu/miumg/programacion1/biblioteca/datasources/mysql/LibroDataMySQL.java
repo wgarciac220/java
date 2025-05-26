@@ -38,7 +38,7 @@ public class LibroDataMySQL implements ILibroData {
         List<LibroConAutor> books = new ArrayList<>();
 
         String sql = """
-            SELECT libro.id, titulo, isbn, genero, cantidad, portada, anoPublicacion, editorial, idioma, rating, estado, autorId, autor.nombre
+            SELECT libro.id, titulo, isbn, genero, cantidad, portada, anoPublicacion, editorial, idioma, rating, estado, autorId, autor.nombre, prestados
             FROM libro
             LEFT JOIN autor ON libro.autorId=autor.id
         """;
@@ -58,7 +58,8 @@ public class LibroDataMySQL implements ILibroData {
                         rs.getFloat("rating"),
                         rs.getShort("autorId"),
                         rs.getString("estado"),
-                        rs.getString("autor.nombre")
+                        rs.getString("autor.nombre"),
+                        rs.getShort("prestados")
                 ));
             }
         }
@@ -119,7 +120,6 @@ public class LibroDataMySQL implements ILibroData {
             stmt.setShort(11, libro.getAutorId());
             stmt.setShort(12, libro.getId());
             stmt.executeUpdate();
-
         }
     }
 
@@ -133,7 +133,6 @@ public class LibroDataMySQL implements ILibroData {
         try (Connection conn = DriverManager.getConnection(url, user, password); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setShort(1, id);
             stmt.executeUpdate();
-
         }
     }
 }
